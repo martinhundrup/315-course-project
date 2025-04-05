@@ -19,10 +19,10 @@ def test_visuals():
     #dataFrame['deaths'] = dataFrame['deaths']
 
     figure = px.choropleth(dataFrame, geojson=counties, locations='fips', color='deaths',color_continuous_scale="inferno",
-                           range_color=(0,20000), scope="usa", hover_name='county', labels='deaths')
+                           range_color=(0,750), scope="usa", hover_name='county', hover_data=['cases'], labels={'deaths'})
 
     
-    #figure.update_geos(fitbounds='locations', visible=True)
+    #figure.update_geos(fitbounds='locations', visible=False)
     figure.show()
 
 

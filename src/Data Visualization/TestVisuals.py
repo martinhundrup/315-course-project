@@ -11,7 +11,8 @@ import os
 
 def test_visuals():
     # here we well be trying to visualize the Covid cases vs deaths in the US Counties using Plotly Express
-    dataFrame = pd.read_csv('C:\\Users\\13606\\Desktop\\CPT_S 315 Data Project\\315-course-project\\us-counties-2023.csv',
+   
+    dataFrame = pd.read_csv("https://raw.githubusercontent.com/martinhundrup/315-course-project/refs/heads/main/us-counties-2023.csv",
      dtype={"fips": str})
 
     #dataFrame['fips'] = dataFrame['fips'].astype(str)
@@ -22,7 +23,7 @@ def test_visuals():
                            range_color=(0,750), scope="usa", hover_name='county', hover_data=['cases'], labels={'deaths'})
 
     
-    #figure.update_geos(fitbounds='locations', visible=False)
+    #figure.update_geos(fitbounds='geojson', visible=False)
     figure.show()
 
 

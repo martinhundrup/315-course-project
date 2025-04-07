@@ -22,6 +22,61 @@ STATE_NAMES = {
     'WI': 'Wisconsin', 'WY': 'Wyoming'
 }
 
+# not currently used, but now we have it - mapping of fips code to 2 letter state codes
+STATE_FIPS = {
+    '0100': 'AL',
+    '0200': 'AK',
+    '0400': 'AZ',
+    '0500': 'AR',
+    '0600': 'CA',
+    '0800': 'CO',
+    '0900': 'CT',
+    '1000': 'DE',
+    '1200': 'FL',
+    '1300': 'GA',
+    '1500': 'HI',
+    '1600': 'ID',
+    '1700': 'IL',
+    '1800': 'IN',
+    '1900': 'IA',
+    '2000': 'KS',
+    '2100': 'KY',
+    '2200': 'LA',
+    '2300': 'ME',
+    '2400': 'MD',
+    '2500': 'MA',
+    '2600': 'MI',
+    '2700': 'MN',
+    '2800': 'MS',
+    '2900': 'MO',
+    '3000': 'MT',
+    '3100': 'NE',
+    '3200': 'NV',
+    '3300': 'NH',
+    '3400': 'NJ',
+    '3500': 'NM',
+    '3600': 'NY',
+    '3700': 'NC',
+    '3800': 'ND',
+    '3900': 'OH',
+    '4000': 'OK',
+    '4100': 'OR',
+    '4200': 'PA',
+    '4400': 'RI',
+    '4500': 'SC',
+    '4600': 'SD',
+    '4700': 'TN',
+    '4800': 'TX',
+    '4900': 'UT',
+    '5000': 'VT',
+    '5100': 'VA',
+    '5300': 'WA',
+    '5400': 'WV',
+    '5500': 'WI',
+    '5600': 'WY'
+}
+
+
 def parse_education(data: PPData, df):
     state_map = {s.state_code: s for s in data.states}
     set_count = 0
@@ -40,9 +95,14 @@ def parse_education(data: PPData, df):
         state_code = row['State'].strip().upper()
         area_name = row['Area name'].strip()
         value = row['Value']
+        fips_code = row['FIPS Code']
 
         # Normalize for matching
-        search_name = area_name.lower()
+        try:
+            fips_int = int(fips_code)
+        except:
+            bad_data_count += 1 #fips not an integer
+            continue
 
         try:
             amount = float(value)
@@ -63,7 +123,7 @@ def parse_education(data: PPData, df):
 
         # Find matching county
         county = next(
-            (c for c in state.counties if c.county_name and c.county_name.strip().lower() == search_name),
+            (c for c in state.counties if c.fips == fips_int),
             None
         )
 
@@ -108,7 +168,14 @@ def parse_population(data: PPData, df):
 
         state_code = row['State']
         area_name = row['Area_Name']
+        fips_code = row['FIPStxt']
         population = row['Value']
+
+        try:
+            fips_int = int(fips_code)
+        except:
+            bad_data_count += 1
+            continue
 
         # Convert population to int
         try:
@@ -121,12 +188,14 @@ def parse_population(data: PPData, df):
         if state_code in STATE_NAMES and area_name == STATE_NAMES[state_code]:
             state_count += 1
             if state_code not in state_map:
-                state = StateData(_state_name=area_name, _state_code=state_code)
+                state = StateData(_state_name=area_name, _state_code=state_code, _fips=fips_int)
                 state_map[state_code] = state
             else:
                 state = state_map[state_code]
                 if not state.state_name:
                     state.state_name = area_name
+                if not state.fips:
+                    state.fips = fips_int
         else:
             # Treat all others as counties
             if state_code not in state_map:
@@ -135,13 +204,14 @@ def parse_population(data: PPData, df):
 
             state = state_map[state_code]
 
-            existing = next((c for c in state.counties if c.county_name == area_name), None)
+            existing = next((c for c in state.counties if c.fips == fips_code), None)
             if existing:
                 existing.population = population
             else:
                 county = CountyData()
                 county.county_name = area_name
                 county.population = population
+                county.fips = fips_code
                 state.counties.append(county)
                 county_count += 1
 
@@ -167,6 +237,13 @@ def parse_poverty(data: PPData, df):
         state_code = row['State']
         area_name = row['Area_Name']
         poverty_value = row['Value']
+        fips_code = row['FIPS_Code']
+
+        try:
+            fips_int = int(fips_code)
+        except:
+            bad_data_count += 1
+            continue
 
         try:
             poverty_raw = int(poverty_value)
@@ -186,7 +263,7 @@ def parse_poverty(data: PPData, df):
             continue
 
         # Find county
-        county = next((c for c in state.counties if c.county_name == area_name), None)
+        county = next((c for c in state.counties if c.fips == fips_int), None)
         if not county:
             skipped_county_count += 1
             continue
@@ -219,6 +296,13 @@ def parse_employment(data: PPData, df):
         state_code = row['State']
         area_name = row['Area_Name']
         value = row['Value']
+        fips_code = row['FIPS_Code']
+
+        try:
+            fips_int = int(fips_code)
+        except:
+            bad_data_count += 1
+            continue
 
         try:
             parsed_value = float(value) if "rate" in attr.lower() else int(value)
@@ -240,7 +324,7 @@ def parse_employment(data: PPData, df):
         if "," in area_name: # this csv is named weird
           area_name = area_name.split(",")[0].strip()
 
-        county = next((c for c in state.counties if c.county_name == area_name), None)
+        county = next((c for c in state.counties if c.fips == fips_int), None)
         if not county:   
             skipped_county_count += 1
             continue

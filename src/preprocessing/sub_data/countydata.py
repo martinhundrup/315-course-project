@@ -11,6 +11,7 @@ class CountyData:
     self.poverty_raw = None
     self.poverty_rate = None
     self.employment_data = None
+    self.fips = None # integer value, has state fips build in, so 1001 for Autauga County alabama
 
   def __str__(self):
     poverty = (
@@ -32,6 +33,7 @@ class CountyData:
 
     return (
         f"  County: {self.county_name}\n"
+        f"    FIPS: {self.fips}\n"
         f"    Population: {self.population}\n"
         f"    COVID Cases: {self.covid_cases}\n"
         f"    COVID Deaths: {self.covid_deaths}\n"
@@ -46,6 +48,7 @@ class CountyData:
   def to_dict(self):
     return {
         "county_name": self.county_name,
+        "fips": self.fips,
         "population": self.population,
         "covid_cases": self.covid_cases,
         "covid_deaths": self.covid_deaths,
@@ -58,6 +61,7 @@ class CountyData:
   def from_dict(d):
       c = CountyData()
       c.county_name = d["county_name"]
+      c.fips = d["fips"]
       c.population = d["population"]
       c.covid_cases = d["covid_cases"]
       c.covid_deaths = d["covid_deaths"]

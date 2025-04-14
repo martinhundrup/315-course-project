@@ -34,6 +34,15 @@ class DataVisualizer:
                                hover_data=hover_data, labels=labels)
         
         figure.show()
+    
+    def scatter_plot_visualizer(self):
+        pass
+
+    def bubble_chart_visualizer(self):
+        pass
+
+    def histogram_visualizer(self):
+        pass
 
 
 dataFrame = pd.read_csv("https://raw.githubusercontent.com/martinhundrup/315-course-project/refs/heads/main/us-counties-2023.csv",

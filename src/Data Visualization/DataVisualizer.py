@@ -37,6 +37,12 @@ class DataVisualizer:
         
         figure.show()
     
+    """
+        Parameters: 
+        x_axis: data that will be displayed across the x-axis
+        y_axis: data that will be displayed acress the y-axis
+        hover_data: this will be what the data will show when hovered over a data point
+    """
     def scatter_plot_visualizer(self, x_axis, y_axis, hover_data):
         # test would be deaths per 100 cases
         # so it would be x would be county, y would be deaths 
@@ -47,9 +53,26 @@ class DataVisualizer:
 
     def bubble_chart_visualizer(self):
         pass
+    
+    """
+        Parameters: 
+        x_axis: data that will determine what count the histogram is trying to look for 
+        yaxis(already processed): this will display the total count 
+    """
+    def histogram_visualizer(self, x_axis):
+        figure = px.histogram(self.data, x=x_axis)
+        figure.show()
+        
 
-    def histogram_visualizer(self):
-        pass
+    """
+        Parameters:
+        x_axis: data that will be displayed on the x_axis
+        y_axis: data that will be displayed on the y_axis
+    """
+    def barchart_visualizer(self, x_axis, y_axis):
+        figure = px.bar(self.data, x=x_axis, y=y_axis)
+        figure.show()
+
 
 
 dataFrame = pd.read_csv("https://raw.githubusercontent.com/martinhundrup/315-course-project/refs/heads/main/us-counties-2023.csv",
@@ -59,8 +82,9 @@ x = DataVisualizer(dataframe=dataFrame)
 
 
 #x.heat_map_visualizer('fips', 'deaths', (0, 1250), 'county', ['cases'], {'deaths'})
-new_df = x.data.drop_duplicates(subset=['county'])
-top_50 = new_df.nlargest(100, 'deaths')
-x.data = top_50
-print(x.data)
-x.scatter_plot_visualizer(x_axis="deaths", y_axis="cases", hover_data=['county', 'state'])
+#new_df = x.data.drop_duplicates(subset=['county'])
+#top_50 = new_df.nlargest(100, 'deaths')
+#x.data = top_50
+#x.data = new_df
+#x.scatter_plot_visualizer(x_axis="deaths", y_axis="cases", hover_data=['county', 'state'])
+#x.histogram_visualizer(x_axis='deaths')

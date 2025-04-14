@@ -11,9 +11,21 @@ import os
 
 
 class DataVisualizer:
+    """The user will pass in a dataframe of their choosing, 
+       this will directly correlate with the data output and
+       what the correlations the user wants to display.  """
     def __init__(self, dataframe):
         self.data = dataframe
 
+    """
+            Parameters: 
+            locations: (counties), 
+            color_freq: (what data you want the color to correlate with),
+            color_range: (Dark -> Light, mins and max represented by color),
+            hover_name: (what is BOLDED in display when mouse is hovered)
+            hover_data: (data is displayed when hovered)
+            labels: (labels for the data)
+    """
     def heat_map_visualizer(self, locations, color_freq, color_range, hover_name, hover_data, labels):
 
         # Creates a heatmap based on the users input
@@ -28,5 +40,6 @@ dataFrame = pd.read_csv("https://raw.githubusercontent.com/martinhundrup/315-cou
      dtype={"fips": str})
 
 x = DataVisualizer(dataframe=dataFrame)
+
 
 x.heat_map_visualizer('fips', 'deaths', (0, 1250), 'county', ['cases'], {'deaths'})

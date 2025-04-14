@@ -6,6 +6,8 @@ with urlopen('https://raw.githubusercontent.com/plotly/datasets/master/geojson-c
 
 import plotly.express as px
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 import plotly.figure_factory as ff
 import os
 
@@ -36,7 +38,14 @@ class DataVisualizer:
         figure.show()
     
     def scatter_plot_visualizer(self):
-        pass
+        # test would be deaths per 100 cases
+        # so it would be x would be county, y would be deaths 
+        # would want to show top 50 worst counties or something like that
+        new_df = self.data.drop_duplicates(subset=['county'])
+        top_50 = new_df.nlargest(5, 'deaths')
+        print(top_50)
+        sns.scatterplot(data=top_50, x="county", y="deaths")
+        plt.show()
 
     def bubble_chart_visualizer(self):
         pass
@@ -51,4 +60,5 @@ dataFrame = pd.read_csv("https://raw.githubusercontent.com/martinhundrup/315-cou
 x = DataVisualizer(dataframe=dataFrame)
 
 
-x.heat_map_visualizer('fips', 'deaths', (0, 1250), 'county', ['cases'], {'deaths'})
+#x.heat_map_visualizer('fips', 'deaths', (0, 1250), 'county', ['cases'], {'deaths'})
+x.scatter_plot_visualizer()

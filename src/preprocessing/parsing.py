@@ -163,7 +163,7 @@ def parse_population(data: PPData, df):
     state_count = 0
 
     for _, row in df.iterrows():
-        if row['Attribute'] != 'POP_ESTIMATE_2023':
+        if row['Attribute'] != 'POP_ESTIMATE_2022':
             continue
 
         state_code = row['State']
@@ -229,55 +229,55 @@ def parse_poverty(data: PPData, df):
 
     # Pre-build lookup for efficiency
     state_map = {s.state_code: s for s in data.states}
+    line_count = 0
 
     for _, row in df.iterrows():
-        if row['Attribute'] != 'POVALL_2023':
-            continue
+        line_count += 1
+        state_fips = str(row['State FIPS Code']).zfill(2)
+        county_fips = str(row['County FIPS Code']).zfill(3)
+        state_code = str(row['Postal Code']).strip().upper()
+        area_name = row['Name']
+        poverty_value = row['Poverty Estimate, All Ages']
 
-        state_code = row['State']
-        area_name = row['Area_Name']
-        poverty_value = row['Value']
-        fips_code = row['FIPS_Code']
-
+        # Combine state + county FIPS
         try:
-            fips_int = int(fips_code)
+            fips_int = int(state_fips + county_fips)
         except:
             bad_data_count += 1
             continue
 
+        # Parse poverty count
         try:
-            poverty_raw = int(poverty_value)
+            poverty_cleaned = str(poverty_value).replace(",", "").strip()
+            poverty_raw = int(poverty_cleaned)
         except:
             bad_data_count += 1
             continue
 
-        # Skip if state wasn't already parsed
+
         if state_code not in state_map:
             skipped_state_count += 1
             continue
 
         state = state_map[state_code]
 
-        # Skip state-level rows
-        if state_code in STATE_NAMES and area_name == STATE_NAMES[state_code]:
-            continue
-
-        # Find county
+        # Match by FIPS
         county = next((c for c in state.counties if c.fips == fips_int), None)
         if not county:
             skipped_county_count += 1
             continue
 
-        # Set poverty rate
         county.poverty_raw = poverty_raw
         county.poverty_rate = float(poverty_raw) / county.population
         set_count += 1
 
-    return (f"Finished parsing poverty data."
-      f"  Set poverty rate for {set_count} counties\n"
-      f"  Skipped {bad_data_count} rows due to bad values\n"
-      f"  Skipped {skipped_state_count} rows with unknown state codes\n"
-      f"  Skipped {skipped_county_count} counties not found in state\n")
+    return (
+        f"Finished parsing poverty data.\n"
+        f"  Set poverty rate for {set_count} counties\n"
+        f"  Skipped {bad_data_count} rows due to bad values\n"
+        f"  Skipped {skipped_state_count} rows with unknown state codes\n"
+        f"  Skipped {skipped_county_count} counties not found in state\n"
+    )
 
 def parse_employment(data: PPData, df):
     bad_data_count = 0
@@ -289,7 +289,7 @@ def parse_employment(data: PPData, df):
 
     for _, row in df.iterrows():
         attr = str(row['Attribute']).strip()
-        if not attr.endswith('_2023'):
+        if not attr.endswith('_2022'):
             continue  # we only want 2023 data
 
         #print(f'on attribute {repr(attr)}')
@@ -334,15 +334,15 @@ def parse_employment(data: PPData, df):
             county.employment_data = EmploymentData()
 
         edata = county.employment_data
-        if attr == 'Civilian_labor_force_2023':
+        if attr == 'Civilian_labor_force_2022':
             edata.civ_labor_force = parsed_value
-        elif attr == 'Employed_2023':
+        elif attr == 'Employed_2022':
             edata.employed = parsed_value
-        elif attr == 'Unemployed_2023':
+        elif attr == 'Unemployed_2022':
             edata.unemployed = parsed_value
-        elif attr == 'Unemployment_rate_2023':
+        elif attr == 'Unemployment_rate_2022':
             edata.unemployment_rate = parsed_value
-        elif attr == 'Median_Household_Income_2023':
+        elif attr == 'Median_Household_Income_2022':
             edata.median_hh_income = parsed_value
         else:
             continue
@@ -356,3 +356,47 @@ def parse_employment(data: PPData, df):
         f"  Skipped {skipped_state_count} rows with unknown state\n"
         f"  Skipped {skipped_county_count} counties not found in state\n"
     )
+
+def parse_covid(data: PPData, df):
+    bad_data_count = 0
+    updated_counties = 0
+    skipped_counties = 0
+    line = 0
+
+    # Build FIPS lookup
+    fips_to_county = {
+        county.fips: county
+        for state in data.states
+        for county in state.counties
+        if county.fips is not None
+    }
+
+    for _, row in df.iterrows():
+        line += 1
+        try:
+            fips = int(row['fips'])
+            cases = int(row['cases'])
+            deaths = int(row['deaths'])
+        except:
+            #print(f'[BAD DATA] something wrong with integer conversions on line {line}')
+            bad_data_count += 1
+            continue
+
+        county = fips_to_county.get(fips)
+        if not county:
+            #print(f'[SKIPPED COUNTINES] fips code {fips} not found as a county')
+            skipped_counties += 1
+            continue
+
+        # Accumulate
+        county.covid_cases = (county.covid_cases or 0) + cases
+        county.covid_deaths = (county.covid_deaths or 0) + deaths
+        updated_counties += 1
+
+    return (
+        f"Finished parsing COVID data.\n"
+        f"  Updated {updated_counties} county entries\n"
+        f"  Skipped {skipped_counties} counties not found\n"
+        f"  Skipped {bad_data_count} rows due to bad values\n"
+    )
+

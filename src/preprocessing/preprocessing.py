@@ -25,10 +25,13 @@ pop_df = pd.read_csv(os.path.join(BASE_DIR, '../../other-data/PopulationEstimate
 edu_df = pd.read_csv(os.path.join(BASE_DIR, '../../other-data/Education2023.csv'), encoding='latin1')
 
 # columns: ['FIPS_Code', 'State', 'Area_Name', 'Attribute', 'Value']
-pov_df = pd.read_csv(os.path.join(BASE_DIR, '../../other-data/Poverty2023.csv'), encoding='latin1')
+pov_df = pd.read_csv(os.path.join(BASE_DIR, '../../other-data/Poverty2022.csv'), encoding='utf-8-sig')
 
 # columns: ['FIPS_Code', 'State', 'Area_Name', 'Attribute', 'Value']
 unemp_df = pd.read_csv(os.path.join(BASE_DIR, '../../other-data/Unemployment2023.csv'), encoding='latin1')
+
+# columns: ['date','county','state','fips','cases','deaths']
+covid_df = pd.read_csv(os.path.join(BASE_DIR, '../..//us-counties-2022.csv'), encoding='latin1')
 
 ########################################
 ## store into centralized object list ##
@@ -44,11 +47,13 @@ else:
   pov_results = parse_poverty(pp_data, pov_df)
   empl_results = parse_employment(pp_data, unemp_df)
   edu_results = parse_education(pp_data, edu_df)
+  covid_results = parse_covid(pp_data, covid_df)
 
   print(pop_results)
   print(pov_results)
   print(empl_results)
   print(edu_results)
+  print(covid_results)
   pp_data.save_to_json("ppdata.json")
 
 #print(pp_data)

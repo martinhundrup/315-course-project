@@ -37,15 +37,13 @@ class DataVisualizer:
         
         figure.show()
     
-    def scatter_plot_visualizer(self):
+    def scatter_plot_visualizer(self, x_axis, y_axis, hover_data):
         # test would be deaths per 100 cases
         # so it would be x would be county, y would be deaths 
         # would want to show top 50 worst counties or something like that
-        new_df = self.data.drop_duplicates(subset=['county'])
-        top_50 = new_df.nlargest(5, 'deaths')
-        print(top_50)
-        sns.scatterplot(data=top_50, x="county", y="deaths")
-        plt.show()
+
+        figure = px.scatter(self.data, x=x_axis, y=y_axis, hover_data=hover_data)
+        figure.show()
 
     def bubble_chart_visualizer(self):
         pass
@@ -61,4 +59,8 @@ x = DataVisualizer(dataframe=dataFrame)
 
 
 #x.heat_map_visualizer('fips', 'deaths', (0, 1250), 'county', ['cases'], {'deaths'})
-x.scatter_plot_visualizer()
+new_df = x.data.drop_duplicates(subset=['county'])
+top_50 = new_df.nlargest(100, 'deaths')
+x.data = top_50
+print(x.data)
+x.scatter_plot_visualizer(x_axis="deaths", y_axis="cases", hover_data=['county', 'state'])

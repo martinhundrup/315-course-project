@@ -58,17 +58,6 @@ def classify_covid_cases(cases):
     else:
         return 'high_covid_cases'
 
-
-def classify_covidPercent(percent):
-    if type(percent) != float:
-        return 'unknown_covid_percent'
-    elif percent < 0.15:
-        return 'low_covid_percent'
-    elif percent < 0.3:
-        return 'medium_covid_percent'
-    else:
-        return 'high_covid_percent'
-
 # the functions below are used to convert the data into transactions for apriori
 
 def classify_county(county_data):
@@ -79,7 +68,6 @@ def classify_county(county_data):
     transaction.append(classify_income(county_data['median_hh_income']))
     transaction.append(classify_education_level(county_data['education_levels']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
-    #transaction.append(classify_covidPercent(county_data['population']/county_data['covid_cases']))
     return transaction
 
 def classify_covid_population(county_data):

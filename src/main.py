@@ -38,12 +38,15 @@ for state in pp_data.states:
             'covid_cases': county.covid_cases
         }
 
+
         overall_transactions.append(classify_county(county_data))
         covid_population_transactions.append(classify_covid_population(county_data))
         covid_poverty_transactions.append(classify_covid_poverty(county_data))
         covid_unemployment_transactions.append(classify_covid_unemployment(county_data))
         covid_income_transactions.append(classify_covid_income(county_data))
         covid_education_transactions.append(classify_covid_education(county_data))
+
+
 
 _, overall_rules = apriori(overall_transactions, min_support=MINSUP, min_confidence=MINCONF)
 _, covid_population_rules = apriori(covid_population_transactions, min_support=MINSUP, min_confidence=MINCONF)
@@ -76,3 +79,5 @@ for rule in covid_income_rules:
 print(f"\nCOVID-Education Rules with [min_sup {MINSUP}] and [min_conf {MINCONF}]:")
 for rule in covid_education_rules:
     print("     ", rule)
+
+

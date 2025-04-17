@@ -14,6 +14,7 @@ covid_poverty_transactions = []
 covid_unemployment_transactions = []
 covid_income_transactions = []
 covid_education_transactions = []
+covid_deaths_transactions = []
 
 MINSUP = 0.5
 MINCONF = 0.7
@@ -35,7 +36,8 @@ for state in pp_data.states:
                 else None
             ),
             'education_levels': [e.amount for e in county.education_data],
-            'covid_cases': county.covid_cases
+            'covid_cases': county.covid_cases,
+            'covid_deaths': county.covid_deaths,
         }
 
         overall_transactions.append(classify_county(county_data))
@@ -44,6 +46,7 @@ for state in pp_data.states:
         covid_unemployment_transactions.append(classify_covid_unemployment(county_data))
         covid_income_transactions.append(classify_covid_income(county_data))
         covid_education_transactions.append(classify_covid_education(county_data))
+        covid_deaths_transactions.append(classify_covid_covid_deaths(county_data))
 
 _, overall_rules = apriori(overall_transactions, min_support=MINSUP, min_confidence=MINCONF)
 _, covid_population_rules = apriori(covid_population_transactions, min_support=MINSUP, min_confidence=MINCONF)
@@ -51,6 +54,7 @@ _, covid_poverty_rules = apriori(covid_poverty_transactions, min_support=MINSUP,
 _, covid_unemployment_rules = apriori(covid_unemployment_transactions, min_support=MINSUP, min_confidence=MINCONF)
 _, covid_income_rules = apriori(covid_income_transactions, min_support=MINSUP, min_confidence=MINCONF)
 _, covid_education_rules = apriori(covid_education_transactions, min_support=MINSUP, min_confidence=MINCONF)
+_, covid_deaths_rules = apriori(covid_deaths_transactions, min_support=MINSUP, min_confidence=MINCONF)
 
 # print the rules in a readable way
 print(f"\nOverall Rules with [min_sup {MINSUP}] and [min_conf {MINCONF}]:")
@@ -76,3 +80,12 @@ for rule in covid_income_rules:
 print(f"\nCOVID-Education Rules with [min_sup {MINSUP}] and [min_conf {MINCONF}]:")
 for rule in covid_education_rules:
     print("     ", rule)
+    
+print(f"\nCOVID-Education Rules with [min_sup {MINSUP}] and [min_conf {MINCONF}]:")
+for rule in covid_education_rules:
+    print("     ", rule)
+    
+print(f"\nCOVID-Deaths Rules with [min_sup {MINSUP}] and [min_conf {MINCONF}]:")
+for rule in covid_deaths_rules:
+    print("     ", rule)
+    

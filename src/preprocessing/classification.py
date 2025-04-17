@@ -57,6 +57,16 @@ def classify_covid_cases(cases):
         return 'medium_covid_cases'
     else:
         return 'high_covid_cases'
+    
+def classify_covid_deaths(deaths):
+    if type(deaths) != int:
+        return 'unknown_covid_deaths'
+    elif deaths < 10000:
+        return 'low_covid_deaths'
+    elif deaths < 100000:
+        return 'medium_covid_deaths'
+    else:
+        return 'high_covid_deaths'
 
 # the functions below are used to convert the data into transactions for apriori
 
@@ -68,6 +78,7 @@ def classify_county(county_data):
     transaction.append(classify_income(county_data['median_hh_income']))
     transaction.append(classify_education_level(county_data['education_levels']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
+    transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     return transaction
 
 def classify_covid_population(county_data):
@@ -97,5 +108,11 @@ def classify_covid_income(county_data):
 def classify_covid_education(county_data):
     transaction = []
     transaction.append(classify_education_level(county_data['education_levels']))
+    transaction.append(classify_covid_cases(county_data['covid_cases']))
+    return transaction
+
+def classify_covid_covid_deaths(county_data):
+    transaction = []
+    transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
     return transaction

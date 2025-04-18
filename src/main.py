@@ -17,7 +17,7 @@ covid_education_transactions = []
 covid_deaths_transactions = []
 
 MINSUP = 0.5
-MINCONF = 0.7
+MINCONF = 0.8
 
 for state in pp_data.states:
     for county in state.counties:

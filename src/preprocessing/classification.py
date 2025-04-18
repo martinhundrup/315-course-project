@@ -85,34 +85,40 @@ def classify_covid_population(county_data):
     transaction = []
     transaction.append(classify_population(county_data['population']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
+    transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     return transaction
 
 def classify_covid_poverty(county_data):
     transaction = []
     transaction.append(classify_poverty_rate(county_data['poverty_rate']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
+    transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     return transaction
 
 def classify_covid_unemployment(county_data):
     transaction = []
     transaction.append(classify_unemployment_rate(county_data['unemployment_rate']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
+    transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     return transaction
 
 def classify_covid_income(county_data):
     transaction = []
     transaction.append(classify_income(county_data['median_hh_income']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
+    transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     return transaction
 
 def classify_covid_education(county_data):
     transaction = []
     transaction.append(classify_education_level(county_data['education_levels']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
+    transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     return transaction
 
 def classify_covid_covid_deaths(county_data):
     transaction = []
     transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     transaction.append(classify_covid_cases(county_data['covid_cases']))
+    transaction.append(classify_covid_deaths(county_data['covid_deaths']))
     return transaction

@@ -359,17 +359,19 @@ def parse_employment(data: PPData, df):
 
 def parse_covid(data: PPData, df):
     bad_data_count = 0
-    updated_counties = 0
     skipped_counties = 0
     line = 0
 
-    # Build FIPS lookup
+    # Build FIPS → CountyData lookup
     fips_to_county = {
         county.fips: county
         for state in data.states
         for county in state.counties
         if county.fips is not None
     }
+
+    # --- Track min/max values by fips ---
+    covid_tracker = {}  # fips -> {'min': (cases, deaths), 'max': (cases, deaths)}
 
     for _, row in df.iterrows():
         line += 1
@@ -378,19 +380,35 @@ def parse_covid(data: PPData, df):
             cases = int(row['cases'])
             deaths = int(row['deaths'])
         except:
-            #print(f'[BAD DATA] something wrong with integer conversions on line {line}')
+            # print(f'[BAD DATA] something wrong with integer conversions on line {line}')
             bad_data_count += 1
             continue
 
-        county = fips_to_county.get(fips)
-        if not county:
-            #print(f'[SKIPPED COUNTINES] fips code {fips} not found as a county')
+        if fips not in fips_to_county:
+            # print(f'[SKIPPED COUNTIES] fips code {fips} not found as a county')
             skipped_counties += 1
             continue
 
-        # Accumulate
-        county.covid_cases = (county.covid_cases or 0) + cases
-        county.covid_deaths = (county.covid_deaths or 0) + deaths
+        # --- Update tracker for first and last occurrence of this FIPS ---
+        if fips not in covid_tracker:
+            covid_tracker[fips] = {
+                'min_cases': cases,
+                'min_deaths': deaths,
+                'max_cases': cases,
+                'max_deaths': deaths,
+            }
+        else:
+            covid_tracker[fips]['max_cases'] = cases
+            covid_tracker[fips]['max_deaths'] = deaths
+
+    # --- Apply final totals to counties ---
+    updated_counties = 0
+    for fips, data_point in covid_tracker.items():
+        county = fips_to_county[fips]
+
+        # Compute difference between last and first seen values
+        county.covid_cases = data_point['max_cases'] - data_point['min_cases']
+        county.covid_deaths = data_point['max_deaths'] - data_point['min_deaths']
         updated_counties += 1
 
     return (
@@ -399,4 +417,5 @@ def parse_covid(data: PPData, df):
         f"  Skipped {skipped_counties} counties not found\n"
         f"  Skipped {bad_data_count} rows due to bad values\n"
     )
+
 

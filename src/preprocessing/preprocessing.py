@@ -56,4 +56,6 @@ else:
   print(covid_results)
   pp_data.save_to_json("ppdata.json")
 
+pp_data.create_csv("ppdata.csv")
+
 #print(pp_data)

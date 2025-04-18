@@ -69,11 +69,14 @@ allData = allData.drop(columns = "fips")
 #print(unemp_df.head().stack())
 #print(allData)
 
-
+allData = pd.read_csv("./src/ppdata.csv")
+allData = allData.drop(columns = ["Poverty Raw","Labor Force","State","County","Less than high school graduate, 2019-23","High school graduate (or equivalency), 2019-23","Some college or associate degree, 2019-23","Bachelor's degree or higher, 2019-23","Percent of adults who are not high school graduates, 2019-23","Percent of adults who are high school graduates (or equivalent), 2019-23","Percent of adults completing some college or associate degree, 2019-23","Percent of adults with a bachelor's degree or higher, 2019-23"])
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 
-X = allData[['cases', 'POP_ESTIMATE_2022']]
-Y = allData['deaths']
+print(allData)
+
+# X = allData[['cases', 'POP_ESTIMATE_2022']]
+# Y = allData['deaths']
 

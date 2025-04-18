@@ -37,7 +37,8 @@ class CountyData:
         f"    Population: {self.population}\n"
         f"    COVID Cases: {self.covid_cases}\n"
         f"    COVID Deaths: {self.covid_deaths}\n"
-        f"    Poverty Rate: {poverty}\n"
+        f"    Poverty Rate: {self.poverty_rate}\n"
+        f"    Poverty Raw: {self.poverty_raw}\n"
         f"    Employment:\n{emp_str}\n"
         f"    Education:{edu_str}"
     )
@@ -53,6 +54,7 @@ class CountyData:
         "covid_cases": self.covid_cases,
         "covid_deaths": self.covid_deaths,
         "poverty_rate": self.poverty_rate,
+        "poverty_raw": self.poverty_raw,
         "education_data": [e.to_dict() for e in self.education_data] if self.education_data else [],
         "employment_data": self.employment_data.to_dict() if self.employment_data else None,
     }

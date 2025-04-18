@@ -22,7 +22,6 @@ from preprocessing.classification import *
 
 
 
-
 import pandas as pd
 import numpy as np
 import os
@@ -59,27 +58,22 @@ unemp_df = unemp_df.rename(columns= {'FIPS_Code':"fips"})
 #print(pop_df[pop_df["fips"] == 1003])
 
 
-print(covidData.head())
+#print(covidData.head())
 #print()
 
-print(pop_df.head())#[["Attribute","Value"]].T)
 
-print(covidData.merge(pop_df, on = 'fips'))
-#print()
+#print(pop_df.head())#[["Attribute","Value"]].T)
+
+allData = covidData.merge(pop_df, on = 'fips')
+allData = allData.drop(columns = "fips")
 #print(unemp_df.head().stack())
-
-#print(covidData)
-#print(pop_df[pop_df["Area_Name"] == "Autauga County"])
-
-# data = {'Header_Column': ['Header1', 'Header2', 'Header3'], 
-#         'Value1': [1, 2, 3], 
-#         'Value2': [4, 5, 6],
-#         'Value3': [7,8,9]}
-# df = pd.DataFrame(data)
-# df = df.set_index('Header_Column').T
-# print(df)
+#print(allData)
 
 
-# pp = pd.read_json("./src/ppdata.json")
-# print()
-# print(pp)
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+X = allData[['cases', 'POP_ESTIMATE_2022']]
+Y = allData['deaths']
+

@@ -66,16 +66,38 @@ unemp_df = unemp_df.rename(columns= {'FIPS_Code':"fips"})
 
 allData = covidData.merge(pop_df, on = 'fips')
 allData = allData.drop(columns = "fips")
-#print(unemp_df.head().stack())
-#print(allData)
+
+
+
 
 allData = pd.read_csv("./src/ppdata.csv")
-allData = allData.drop(columns = ["Poverty Raw","Labor Force","State","County","Less than high school graduate, 2019-23","High school graduate (or equivalency), 2019-23","Some college or associate degree, 2019-23","Bachelor's degree or higher, 2019-23","Percent of adults who are not high school graduates, 2019-23","Percent of adults who are high school graduates (or equivalent), 2019-23","Percent of adults completing some college or associate degree, 2019-23","Percent of adults with a bachelor's degree or higher, 2019-23"])
+allData = allData.drop(columns = ["State","County","FIPS"])
+
+allData.corr().to_csv("Coorelation-Population.csv")
+
+
+allData = allData.drop(columns = ["Poverty Raw","Unemployed",
+                        "Less than high school graduate, 2019-23",
+        "High school graduate (or equivalency), 2019-23",
+        "Some college or associate degree, 2019-23",
+        "Bachelor's degree or higher, 2019-23"
+                        ])
+
+allData[[
+    "COVID Cases","COVID Deaths","Labor Force","Employed",
+         ]] = allData[[
+    "COVID Cases","COVID Deaths","Labor Force","Employed",
+         ]].div(allData["Population"], axis = 0)
+allData = allData.drop(columns = ["Population"])
+print(allData.corr())
+allData.corr().to_csv("Coorelation-Percent.csv")
+#allData = allData.drop(columns = ["Poverty Raw","Labor Force","Less than high school graduate, 2019-23","High school graduate (or equivalency), 2019-23","Some college or associate degree, 2019-23","Bachelor's degree or higher, 2019-23","Percent of adults who are not high school graduates, 2019-23","Percent of adults who are high school graduates (or equivalent), 2019-23","Percent of adults completing some college or associate degree, 2019-23","Percent of adults with a bachelor's degree or higher, 2019-23"])
+
+
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.metrics import accuracy_score
 
-print(allData)
 
 # X = allData[['cases', 'POP_ESTIMATE_2022']]
 # Y = allData['deaths']

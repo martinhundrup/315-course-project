@@ -79,8 +79,8 @@ class XGBoostModel:
         print(self.opt.score(self.X_test, self.y_test))
         county_deaths = self.opt.predict(self.X_test)
         for i in range(len(county_deaths)):
-            print(f"Predicted Death Total for {self.dataframe['County'][i]}: {county_deaths[i]:.2f}")
-            print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
+            print(f"Predicted Death Total for {self.dataframe['County'][i]}: {county_deaths[i]:.2f}, Actual Death Total: {self.dataframe['COVID Deaths'][i]}")
+            #print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
             print("="*50)
 
     def run_all(self):

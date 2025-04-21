@@ -9,6 +9,7 @@ from category_encoders.target_encoder import TargetEncoder
 from skopt import BayesSearchCV
 from skopt.space import Real, Categorical, Integer
 import pandas as pd
+import numpy as np
 
 
 class XGBoostModel:
@@ -16,11 +17,14 @@ class XGBoostModel:
         self.pipeline = None
         self.search_space = None
         self.opt = None
+        self.X = None
+        self.Y = None
         self.X_train = None
         self.y_train = None
         self.X_test = None
         self.y_test = None
         self.dataframe = None
+        self.original_df = None # after the nan values have been dropped
 
     """Just our base test for XG Boost given within the documentation"""
     def test_xg_boost(self):
@@ -39,9 +43,11 @@ class XGBoostModel:
     def data_cleaner(self):
         self.dataframe = self.dataframe.dropna()
         self.dataframe = self.dataframe.reset_index(drop=True)
+        self.original_df = self.dataframe
         #self.dataframe = self.dataframe.fillna(0) # <- this is bad, want to find a better way to do this
         #print(dataframe.columns)
         self.dataframe = self.dataframe.drop(columns=['FIPS', 'State'])
+        print(len(self.dataframe))
 
     """ Reads our data """
     def train_covid_deaths(self):
@@ -49,12 +55,12 @@ class XGBoostModel:
        
         self.data_cleaner()
 
-        X = self.dataframe.drop(columns=['COVID Deaths'])
+        self.X = self.dataframe.drop(columns=['COVID Deaths'])
 
-        Y = self.dataframe['COVID Deaths']
+        self.Y = self.dataframe['COVID Deaths']
         
         # Our training and testing set
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, Y, test_size=0.2, random_state=8)
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.Y, test_size=0.2, random_state=8)
 
     """Standard Preprocessing feature for ML"""
     def training_pipeline(self):
@@ -87,16 +93,33 @@ class XGBoostModel:
     def evaluate_make_predictions(self):
         print(self.opt.score(self.X_test, self.y_test))
         county_deaths = self.opt.predict(self.X_test)
-        for i in range(len(county_deaths)):
-            print(f"Predicted Death Total for {self.dataframe['County'][i]}: {county_deaths[i]:.2f}, Actual Death Total: {self.dataframe['COVID Deaths'][i]}")
-            #print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
-            print("="*50)
+        # for i in range(len(county_deaths)):
+        #     print(f"Predicted Death Total for {self.dataframe['County'][i]}: {county_deaths[i]:.2f}, Actual Death Total: {self.dataframe['COVID Deaths'][i]}")
+        #     #print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
+        #     print("="*50)
+
+        #print(len(self.X_train))
+        #print(len(county_deaths))
 
         print(f"Negative Mean Squared Error: {self.opt.score(self.X_test, self.y_test)}")
         #print(f"Accuracy: {accuracy_score(self.y_test, county_deaths)}")
         print(f"R^2 Score: {r2_score(self.y_test, county_deaths)}")
         print(f"Mean Squared: {mean_squared_error(self.y_test, county_deaths)}")
 
+    def print_out_predictions(self):
+        all_county_predictions = self.opt.predict(self.X)
+        all_county_predictions = np.round(all_county_predictions)
+        for i in range(len(all_county_predictions)):
+            print(f"Predicted Death Total for {self.dataframe['County'][i]}: {all_county_predictions[i]:.1f}, Actual Death Total: {self.dataframe['COVID Deaths'][i]}")
+            print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
+            print("="*50)
+
+        print(len(all_county_predictions))
+
+    """Going to want CSV to display 
+       Predicted Deaths, 
+       Actual Deaths,
+       Percent In Change between Predicted / Actual"""
     def write_to_csv(self):
         pass
 
@@ -106,6 +129,7 @@ class XGBoostModel:
         self.hyperparameter_tuning()
         self.train_xgboost_model()
         self.evaluate_make_predictions()
+        self.print_out_predictions()
 
 x = XGBoostModel()
 

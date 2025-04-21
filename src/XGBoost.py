@@ -19,6 +19,7 @@ class XGBoostModel:
         self.y_train = None
         self.X_test = None
         self.y_test = None
+        self.dataframe = None
 
     """Just our base test for XG Boost given within the documentation"""
     def test_xg_boost(self):
@@ -36,12 +37,12 @@ class XGBoostModel:
 
     """ Reads our data """
     def train_covid_deaths(self):
-        dataframe = pd.read_csv("./src/ppdata.csv")
-        dataframe = dataframe.dropna()
+        self.dataframe = pd.read_csv("./src/ppdata.csv")
+        self.dataframe = self.dataframe.fillna(0)
         #print(dataframe.columns)
-        X = dataframe.drop(columns="COVID Deaths")
+        X = self.dataframe.drop(columns="COVID Deaths")
         #print(X.columns)
-        Y = dataframe['COVID Deaths']
+        Y = self.dataframe['COVID Deaths']
 
         # Our training and testing set
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, Y, test_size=0.2, random_state=8)
@@ -56,7 +57,7 @@ class XGBoostModel:
 
     def hyperparameter_tuning(self):
         search_space = {
-            'clf__max_depth': Integer(2,8),
+            'clf__max_depth': Integer(2,10),
             'clf__learning_rate': Real(0.001, 0.2, prior='log-uniform'),
             'clf__subsample': Real(0.5, 1.0),
             'clf__colsample_bytree': Real(0.5, 1.0),
@@ -68,7 +69,7 @@ class XGBoostModel:
         }
 
         self.search_space = search_space
-        opt = BayesSearchCV(self.pipe, self.search_space, cv=3, n_iter=10, scoring='neg_mean_squared_error', random_state=8)
+        opt = BayesSearchCV(self.pipe, self.search_space, cv=5, n_iter=75, scoring='neg_mean_squared_error', random_state=8)
         self.opt = opt
 
     def train_xgboost_model(self):
@@ -76,7 +77,11 @@ class XGBoostModel:
     
     def evaluate_make_predictions(self):
         print(self.opt.score(self.X_test, self.y_test))
-        print(self.opt.predict(self.X_test))
+        county_deaths = self.opt.predict(self.X_test)
+        for i in range(len(county_deaths)):
+            print(f"Predicted Death Total for {self.dataframe['County'][i]}: {county_deaths[i]:.2f}")
+            print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
+            print("="*50)
 
     def run_all(self):
         self.train_covid_deaths()

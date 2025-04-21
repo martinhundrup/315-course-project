@@ -4,6 +4,7 @@ from xgboost import XGBRegressor
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score,mean_squared_error,r2_score
 from category_encoders.target_encoder import TargetEncoder
 from skopt import BayesSearchCV
 from skopt.space import Real, Categorical, Integer
@@ -35,15 +36,23 @@ class XGBoostModel:
         print(data['data'])
         print(preds)
 
+    def data_cleaner(self):
+        self.dataframe = self.dataframe.dropna()
+        self.dataframe = self.dataframe.reset_index(drop=True)
+        #self.dataframe = self.dataframe.fillna(0) # <- this is bad, want to find a better way to do this
+        #print(dataframe.columns)
+        self.dataframe = self.dataframe.drop(columns=['FIPS', 'State'])
+
     """ Reads our data """
     def train_covid_deaths(self):
         self.dataframe = pd.read_csv("./src/ppdata.csv")
-        self.dataframe = self.dataframe.fillna(0)
-        #print(dataframe.columns)
-        X = self.dataframe.drop(columns="COVID Deaths")
-        #print(X.columns)
-        Y = self.dataframe['COVID Deaths']
+       
+        self.data_cleaner()
 
+        X = self.dataframe.drop(columns=['COVID Deaths'])
+
+        Y = self.dataframe['COVID Deaths']
+        
         # Our training and testing set
         self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(X, Y, test_size=0.2, random_state=8)
 
@@ -82,6 +91,14 @@ class XGBoostModel:
             print(f"Predicted Death Total for {self.dataframe['County'][i]}: {county_deaths[i]:.2f}, Actual Death Total: {self.dataframe['COVID Deaths'][i]}")
             #print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
             print("="*50)
+
+        print(f"Negative Mean Squared Error: {self.opt.score(self.X_test, self.y_test)}")
+        #print(f"Accuracy: {accuracy_score(self.y_test, county_deaths)}")
+        print(f"R^2 Score: {r2_score(self.y_test, county_deaths)}")
+        print(f"Mean Squared: {mean_squared_error(self.y_test, county_deaths)}")
+
+    def write_to_csv(self):
+        pass
 
     def run_all(self):
         self.train_covid_deaths()

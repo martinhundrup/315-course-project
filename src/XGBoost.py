@@ -10,6 +10,7 @@ from skopt import BayesSearchCV
 from skopt.space import Real, Categorical, Integer
 import pandas as pd
 import numpy as np
+import time as t
 
 
 class XGBoostModel:
@@ -109,27 +110,47 @@ class XGBoostModel:
     def print_out_predictions(self):
         all_county_predictions = self.opt.predict(self.X)
         all_county_predictions = np.round(all_county_predictions)
-        for i in range(len(all_county_predictions)):
-            print(f"Predicted Death Total for {self.dataframe['County'][i]}: {all_county_predictions[i]:.1f}, Actual Death Total: {self.dataframe['COVID Deaths'][i]}")
-            print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
-            print("="*50)
+        # for i in range(len(all_county_predictions)):
+        #     print(f"Predicted Death Total for {self.dataframe['County'][i]}: {all_county_predictions[i]:.1f}, Actual Death Total: {self.dataframe['COVID Deaths'][i]}")
+        #     print(f"Actual Death Total for {self.dataframe['County'][i]}: {self.dataframe['COVID Deaths'][i]}")
+        #     print("="*50)
 
-        print(len(all_county_predictions))
+        # print(len(all_county_predictions))
 
     """Going to want CSV to display 
        Predicted Deaths, 
        Actual Deaths,
-       Percent In Change between Predicted / Actual"""
+       Percent In Change between Predicted / Actual -val if below +val if above
+       Going to Create two CSV's, one with the full data set
+       The other with just predicted outcomes for each county.
+       """
     def write_to_csv(self):
-        pass
+        #============================ ALL DATA WITH AMOUNT OVER / UNDER ============================#
+        all_county_predictions = self.opt.predict(self.X)
+        all_county_predictions = np.round(all_county_predictions)
+
+        self.original_df['Predicted COVID Deaths'] = all_county_predictions
+        self.original_df['Amount Over / Under'] = all_county_predictions - self.original_df['COVID Deaths']
+        self.original_df.to_csv('All-Data-And-Predicted.csv', index=False)
+        #============================ ALL DATA WITH AMOUNT OVER / UNDER ============================#
+
+        #============================ Shortened Data ============================#
+        new_df = self.original_df[['FIPS', 'State', 'County', 'COVID Deaths', 'Predicted COVID Deaths', 'Amount Over / Under', 'Population']]
+        new_df.to_csv('Shortened-Data.csv', index=False)
+        #============================ Shortened Data ============================#
+
 
     def run_all(self):
+        start = t.time()
         self.train_covid_deaths()
         self.training_pipeline()
         self.hyperparameter_tuning()
         self.train_xgboost_model()
+        end = t.time()
+        print(f"Total Model Time In Minuets: {((end - start) / 60):.2f}")
         self.evaluate_make_predictions()
         self.print_out_predictions()
+        self.write_to_csv()
 
 x = XGBoostModel()
 

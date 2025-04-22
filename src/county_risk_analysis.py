@@ -53,9 +53,17 @@ for name, clf in models.items():
 # === SHAP Values (XGBoost only) === #
 explainer = shap.Explainer(best_model.named_steps['clf'])
 shap_values = explainer(X)
+plt.figure(figsize=(16, 10))  # Wider for better visibility
 shap.summary_plot(shap_values, X, show=False)
-plt.savefig("Predicted Data/shap_summary.png")
+plt.tight_layout()
+plt.savefig("Predicted Data/shap_summary.png", dpi=300)
 plt.close()
+
+# How to read SHAP:
+# Each dot represents a county's SHAP value for a feature.
+# Position left/right: how much it pushed the model prediction lower or higher.
+# Color: feature value (red = high, blue = low).
+# Higher absolute SHAP value = stronger influence on the prediction.
 
 # === Predict Risk for All Counties === #
 df['Risk Prob'] = best_model.predict_proba(X)[:, 1]

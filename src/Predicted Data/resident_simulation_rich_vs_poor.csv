@@ -1,0 +1,11 @@
+City,Name,Age,Income,Essential Worker,Overall Risk Score,Likely to Survive
+Wealthy,Emma Lopez,85,94283,True,0.794,False
+Wealthy,Olivia Lee,36,96560,False,0.618,False
+Wealthy,Bob Lopez,29,91254,True,0.703,False
+Wealthy,Olivia Garcia,23,90975,True,0.7,False
+Wealthy,Grace Lee,88,92631,True,0.816,False
+Poor,Olivia Nguyen,35,24328,False,0.679,False
+Poor,Bob Garcia,18,20200,False,0.693,False
+Poor,Noah Wilson,26,25701,False,0.691,False
+Poor,Tyler Smith,64,23895,True,0.768,False
+Poor,Jamal Jones,39,24833,True,0.746,False

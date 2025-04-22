@@ -1,0 +1,26 @@
+Name,Age,Income,Essential Worker,Predicted Risk Score,High Risk
+Grace Jones,67,106735,False,0.692,True
+Jamal Wilson,23,48392,True,0.63,True
+Grace Wilson,82,79737,True,0.778,True
+Jamal Brown,86,52116,False,0.701,True
+Noah Nguyen,55,71073,False,0.559,True
+Tyler Nguyen,20,59507,True,0.639,True
+Tyler Garcia,40,108667,False,0.58,True
+Bob Lopez,23,94468,True,0.645,True
+Olivia Jones,29,51034,False,0.585,True
+Tyler Lopez,71,105177,False,0.697,True
+Maria Smith,61,76468,False,0.56,True
+Alice Lopez,77,67636,True,0.751,True
+Liam Garcia,85,117937,True,0.754,True
+Emma Jones,58,66055,True,0.632,True
+Olivia Garcia,61,106124,False,0.561,True
+Bob Jones,89,99560,False,0.674,True
+Liam Smith,79,27896,True,0.913,True
+Noah Brown,25,104497,True,0.648,True
+Olivia Brown,20,113609,True,0.64,True
+Liam Davis,29,83940,False,0.548,True
+Noah Wilson,88,83422,False,0.678,True
+Tyler Lee,49,67598,True,0.661,True
+Maria Lopez,52,100670,True,0.655,True
+Bob Nguyen,49,22291,True,0.822,True
+Maria Lee,77,109293,False,0.693,True

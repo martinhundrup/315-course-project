@@ -81,10 +81,6 @@ print(f"\nCOVID-Education Rules with [min_sup {MINSUP}] and [min_conf {MINCONF}]
 for rule in covid_education_rules:
     print("     ", rule)
     
-print(f"\nCOVID-Education Rules with [min_sup {MINSUP}] and [min_conf {MINCONF}]:")
-for rule in covid_education_rules:
-    print("     ", rule)
-    
 print(f"\nCOVID-Deaths Rules with [min_sup {MINSUP}] and [min_conf {MINCONF}]:")
 for rule in covid_deaths_rules:
     print("     ", rule)

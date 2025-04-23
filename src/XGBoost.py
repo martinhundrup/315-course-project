@@ -8,10 +8,14 @@ from sklearn.metrics import accuracy_score,mean_squared_error,r2_score
 from category_encoders.target_encoder import TargetEncoder
 from skopt import BayesSearchCV
 from skopt.space import Real, Categorical, Integer
+from math import sqrt
 import pandas as pd
 import numpy as np
 import time as t
 import os
+import warnings
+
+
 
 
 
@@ -75,10 +79,22 @@ class XGBoostModel:
 
     """Standard Preprocessing feature for ML"""
     def training_pipeline(self):
-        estimators = [
-            ('encoder', TargetEncoder()),
-            ('clf', XGBRegressor(random_state=8)) # for resuable data points
-        ]
+        # Check for categorical columns in the current feature set (self.X)
+        categorical_cols = self.X.select_dtypes(include=['object', 'category']).columns
+        
+        estimators = [] # Start with an empty list
+        
+        # Only add the encoder if there are categorical columns to encode
+        if not categorical_cols.empty:
+            estimators.append(('encoder', TargetEncoder(cols=list(categorical_cols)))) # Explicitly pass cols
+            print(f"TargetEncoder included for columns: {list(categorical_cols)}") # Optional: for confirmation
+        else:
+             #print("TargetEncoder skipped: No categorical columns found in self.X.") # Optional: for confirmation
+             pass
+             
+        # Always add the regressor
+        estimators.append(('clf', XGBRegressor(random_state=8))) 
+        
         self.pipe = Pipeline(steps=estimators)
 
     """Tuning for the model"""
@@ -99,13 +115,13 @@ class XGBoostModel:
         opt = BayesSearchCV(self.pipe, self.search_space, cv=5, n_iter=75, scoring='neg_mean_squared_error', random_state=8)
         self.opt = opt
 
-    """Fits the model"""
     def train_xgboost_model(self):
+        warnings.filterwarnings("ignore", message="No categorical columns found. Calling 'transform' will only return input data.", category=UserWarning)
         self.opt.fit(self.X_train, self.y_train)
     
     """This function just prints out all of our prediction scores for us to see"""
     def evaluate_make_predictions(self):
-        print(self.opt.score(self.X_test, self.y_test))
+        #print(self.opt.score(self.X_test, self.y_test))
         county_deaths = self.opt.predict(self.X_test)
         # for i in range(len(county_deaths)):
         #     print(f"Predicted Death Total for {self.dataframe['County'][i]}: {county_deaths[i]:.2f}, Actual Death Total: {self.dataframe['COVID Deaths'][i]}")
@@ -114,11 +130,13 @@ class XGBoostModel:
 
         #print(len(self.X_train))
         #print(len(county_deaths))
+        print("="*50)
+        #print(f"Negative Mean Squared Error: {self.opt.score(self.X_test, self.y_test)}")
+        print(f"R^2 Score: {r2_score(self.y_test, county_deaths):.2f}")
+        print(f"Mean Squared Error: {mean_squared_error(self.y_test, county_deaths):.2f}")
+        print(f"Square Root Of MSE: {sqrt(mean_squared_error(self.y_test, county_deaths)):.2f}")
+        print("="*50)
 
-        print(f"Negative Mean Squared Error: {self.opt.score(self.X_test, self.y_test)}")
-        #print(f"Accuracy: {accuracy_score(self.y_test, county_deaths)}")
-        print(f"R^2 Score: {r2_score(self.y_test, county_deaths)}")
-        print(f"Mean Squared: {mean_squared_error(self.y_test, county_deaths)}")
 
     def print_out_predictions(self):
         all_county_predictions = self.opt.predict(self.X)
@@ -148,11 +166,11 @@ class XGBoostModel:
         os.makedirs(output_dir, exist_ok=True)
 
         match operation:
-            case "Only Deaths":
+            case "Deaths With Cases":
 
                 # Construct full file paths
-                full_data_path = os.path.join(output_dir, 'Deaths-All-Data-And-Predicted.csv')
-                short_data_path = os.path.join(output_dir, 'Deaths-Shortened-Data.csv')
+                full_data_path = os.path.join(output_dir, 'With-Cases-Deaths-All-Data-And-Predicted.csv')
+                short_data_path = os.path.join(output_dir, 'With-Cases-Deaths-Shortened-Data.csv')
 
                 #============================ ALL DATA WITH AMOUNT OVER / UNDER ============================#
                 self.original_df['Predicted COVID Deaths'] = all_county_predictions
@@ -165,11 +183,11 @@ class XGBoostModel:
                 new_df.to_csv(short_data_path, index=False)
                 #============================ Shortened Data ============================#
 
-            case "Only Cases":
+            case "Cases With No Deaths":
 
                 # Construct full file paths
-                full_data_path = os.path.join(output_dir, 'Cases-All-Data-And-Predicted.csv')
-                short_data_path = os.path.join(output_dir, 'Cases-Shortened-Data.csv')
+                full_data_path = os.path.join(output_dir, 'No-Deaths-Cases-All-Data-And-Predicted.csv')
+                short_data_path = os.path.join(output_dir, 'No-Deaths-Cases-Shortened-Data.csv')
 
                 #============================ ALL DATA WITH AMOUNT OVER / UNDER ============================#
                 self.original_df['Predicted COVID Cases'] = all_county_predictions
@@ -181,17 +199,36 @@ class XGBoostModel:
                 new_df = self.original_df[['FIPS', 'State', 'County', 'Predicted COVID Cases', 'Amount Over / Under (Cases)', 'Population']]
                 new_df.to_csv(short_data_path, index=False)
                 #============================ Shortened Data ============================#
-            case "Predicted Deaths and Cases":
+            case "Deaths With No Cases":
+
+               # Construct full file paths
+                full_data_path = os.path.join(output_dir, 'No-Cases-Deaths-All-Data-And-Predicted.csv')
+                short_data_path = os.path.join(output_dir, 'No-Cases-Deaths-Shortened-Data.csv')
 
                 #============================ ALL DATA WITH AMOUNT OVER / UNDER ============================#
                 self.original_df['Predicted COVID Deaths'] = all_county_predictions
                 self.original_df['Amount Over / Under (Deaths)'] = all_county_predictions - self.original_df['COVID Deaths']
-                self.original_df.to_csv('Deaths-All-Data-And-Predicted.csv', index=False)
+                self.original_df.to_csv(full_data_path, index=False)
                 #============================ ALL DATA WITH AMOUNT OVER / UNDER ============================#
 
                 #============================ Shortened Data ============================#
                 new_df = self.original_df[['FIPS', 'State', 'County', 'COVID Deaths', 'Predicted COVID Deaths', 'Amount Over / Under (Deaths)', 'Population']]
-                new_df.to_csv('Deaths-Shortened-Data.csv', index=False)
+                new_df.to_csv(short_data_path, index=False)
+                #============================ Shortened Data ============================#
+            case "Cases With Deaths":
+                 # Construct full file paths
+                full_data_path = os.path.join(output_dir, 'With-Deaths-Cases-All-Data-And-Predicted.csv')
+                short_data_path = os.path.join(output_dir, 'With-Deaths-Cases-Shortened-Data.csv')
+
+                #============================ ALL DATA WITH AMOUNT OVER / UNDER ============================#
+                self.original_df['Predicted COVID Cases'] = all_county_predictions
+                self.original_df['Amount Over / Under (Cases)'] = all_county_predictions - self.original_df['COVID Cases']
+                self.original_df.to_csv(full_data_path, index=False)
+                #============================ ALL DATA WITH AMOUNT OVER / UNDER ============================#
+
+                #============================ Shortened Data ============================#
+                new_df = self.original_df[['FIPS', 'State', 'County', 'Predicted COVID Cases', 'Amount Over / Under (Cases)', 'Population']]
+                new_df.to_csv(short_data_path, index=False)
                 #============================ Shortened Data ============================#
 
 
@@ -211,6 +248,8 @@ class XGBoostModel:
         self.hyperparameter_tuning()
         self.train_xgboost_model()
         end = t.time()
+        print(f"Model For Predicting {train_data} for {operation}: ")
+        print(" ")
         print(f"Total Model Time In Minuets: {((end - start) / 60):.2f}")
         self.evaluate_make_predictions()
         self.print_out_predictions()
@@ -220,4 +259,56 @@ x = XGBoostModel()
 
 dataframe = pd.read_csv("./src/ppdata.csv")
 
-x.run_all(dataframe, 'COVID Cases', 'Only Cases', ['FIPS', 'State'])
+# trains model with cases in the data
+x.run_all(dataframe, 'COVID Deaths', 'Deaths With Cases', ['FIPS', 'State', 'County'])
+
+# trains model with no cases in the data
+x.run_all(dataframe, 'COVID Deaths', 'Deaths With No Cases', ['FIPS', 'State', 'COVID Cases', 'County'])
+
+# trains model with no deaths in the data
+x.run_all(dataframe, 'COVID Cases', 'Cases With No Deaths', ['FIPS', 'State', 'COVID Deaths', 'County'])
+
+# trains model with deaths in the data
+x.run_all(dataframe, 'COVID Cases', 'Cases With Deaths', ['FIPS', 'State', 'County'])
+
+
+# trained_features = list(x.X.columns) # Get columns from the model object 'x'
+
+# #print(trained_features)
+
+# mock_data_dict = {
+#         'Population': [100000, 100000], # Population remains the same
+#         # County 1: Less Affluent
+#         # County 2: More Affluent
+#         'Poverty Raw': [20000, 8000], # Higher poverty vs Lower poverty
+#         'Poverty Rate': [20.0, 8.0], # Higher poverty rate vs Lower poverty rate
+#         'Labor Force': [55000, 65000], # Slightly lower participation vs Higher participation
+#         'Employed': [51150, 62725], # Corresponds to unemployment rates
+#         'Unemployed': [3850, 2275], # Corresponds to unemployment rates
+#         'Unemployment Rate': [7.0, 3.5], # Higher unemployment vs Lower unemployment
+#         'Median Household Income': [45000, 85000], # Lower income vs Higher income
+#         # Education raw counts (assuming ~70k adults 25+)
+#         'Less than high school graduate, 2019-23': [14000, 5600], # Higher proportion vs Lower
+#         'High school graduate (or equivalency), 2019-23': [24500, 17500], # Higher proportion vs Lower
+#         'Some college or associate degree, 2019-23': [21000, 21000], # Similar proportion
+#         "Bachelor's degree or higher, 2019-23": [10500, 25900], # Lower proportion vs Higher
+#         # Education percentages
+#         'Percent of adults who are not high school graduates, 2019-23': [20.0, 8.0], # Higher proportion vs Lower
+#         'Percent of adults who are high school graduates (or equivalent), 2019-23': [35.0, 25.0], # Higher proportion vs Lower
+#         'Percent of adults completing some college or associate degree, 2019-23': [30.0, 30.0], # Similar proportion
+#         "Percent of adults with a bachelor's degree or higher, 2019-23": [15.0, 37.0] # Lower proportion vs Higher
+#     }
+
+# # 3. Convert to DataFrame
+# mock_dataframe = pd.DataFrame(mock_data_dict)
+
+    
+# # Ensure correct column order (matches training)
+# mock_dataframe = mock_dataframe[trained_features]
+
+# # 5. Make predictions
+# predicted_deaths = x.opt.predict(mock_dataframe)
+
+# print("\n--- Mock County Death Predictions (80% difference within wealth) ---")
+# print(f"Mock County 1 (Lower Income/Higher Poverty) Predicted Deaths: {predicted_deaths[0]:.2f}")
+# print(f"Mock County 2 (Higher Income/Lower Poverty) Predicted Deaths: {predicted_deaths[1]:.2f}")
